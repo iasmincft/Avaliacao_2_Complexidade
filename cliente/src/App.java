@@ -4,7 +4,7 @@ import br.edu.ifba.avaliacao.pedagio.cliente.impl.ClienteImpl;
 import br.edu.ifba.avaliacao.pedagio.impl.Pedagio;
 import br.edu.ifba.avaliacao.pedagio.impl.SensoriamentoImpl;
 
-public class ClienteMain {
+public class App {
 
     // Complexidade O(N)
     public static void main(String[] args) {
