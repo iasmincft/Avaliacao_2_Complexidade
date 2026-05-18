@@ -1,4 +1,4 @@
-package br.edu.ifba.pedagio.servidor.impl;
+package br.edu.ifba.pedagio.cliente.impl;
 
 public class Pedagio {
 

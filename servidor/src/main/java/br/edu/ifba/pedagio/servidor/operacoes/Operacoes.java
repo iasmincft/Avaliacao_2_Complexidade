@@ -1,8 +1,16 @@
 package br.edu.ifba.pedagio.servidor.operacoes;
 
-public interface Operacoes<Monitorado, Sensor> {
+public interface Operacoes {
 
-    void gravarContagens(Monitorado monitorado, Sensor sensor);
+    // Complexidade O(N)
+    void imprimirContagens();
 
-    String gerarRelatorioBahia(double totalCobradoBahia);
+    // Complexidade O(N²)
+    void imprimirLeituras(String mensagemPersonalizada);
+
+    // Complexidade O(N²)
+    void ordenarLeituras();
+
+    // Complexidade O(N³)
+    void buscarTrioCombinacoes(int alvo);
 }
