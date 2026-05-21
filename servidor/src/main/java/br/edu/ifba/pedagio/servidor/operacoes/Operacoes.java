@@ -1,16 +1,9 @@
 package br.edu.ifba.pedagio.servidor.operacoes;
 
-public interface Operacoes {
+public interface Operacoes<Monitorado, Leitura> {
 
-    // Complexidade O(N)
-    void imprimirContagens();
+    public void gravar(Monitorado monitorado, Leitura leitura);
 
-    // Complexidade O(N²)
-    void imprimirLeituras(String mensagemPersonalizada);
+    public int detectarAltasOscilacoes(int limiarOscilacao);
 
-    // Complexidade O(N²)
-    void ordenarLeituras();
-
-    // Complexidade O(N³)
-    void buscarTrioCombinacoes(int alvo);
 }

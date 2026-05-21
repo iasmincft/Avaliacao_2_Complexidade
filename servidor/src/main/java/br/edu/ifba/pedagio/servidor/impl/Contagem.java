@@ -1,37 +1,28 @@
 package br.edu.ifba.pedagio.servidor.impl;
 
-import java.util.Random;
-
 public class Contagem {
 
-    private int id;
-    private int[] leituras;
+    private int total;
 
-    public Contagem(int id, int totalLeituras) {
-
-        this.id = id;
-        this.leituras = new int[totalLeituras];
-
-        gerarLeituras();
+    // O(1)
+    public Contagem(int total) {
+        this.total = total;
     }
 
-    // Complexidade O(N)
-    
-    private void gerarLeituras() {
-
-        Random random = new Random();
-
-        for (int i = 0; i < leituras.length; i++) {
-
-            leituras[i] = random.nextInt(100);
-        }
+    // O(1)
+    public int getTotal() {
+        return total;
     }
 
-    public int getId() {
-        return id;
+    // O(1)
+    public void setTotal(int total) {
+        this.total = total;
     }
 
-    public int[] getLeituras() {
-        return leituras;
+    // O(1)
+    @Override
+    public String toString() {
+        return "contagem: total=" + total;
     }
+
 }

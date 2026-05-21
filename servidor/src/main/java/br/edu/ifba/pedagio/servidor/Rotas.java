@@ -8,128 +8,49 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 @Path("pedagios")
 public class Rotas {
 
-    // Valor alvo da busca O(N³)
-    private static final int VALOR_ALVO = 100;
+    private static final int LIMIAR_OSCILACOES = 25;
 
-    // Operações do servidor
-    private static Operacoes operacoes = null;
+    private static Operacoes<Pedagio, Contagem> operacoes = null;
 
-    // Complexidade O(1)
-    private static Operacoes getOperacoes() {
-
+    private static Operacoes<Pedagio, Contagem> getOperacoes() {
         if (operacoes == null) {
-
-            operacoes = new OperacoesImpl(100);
+            operacoes = new OperacoesImpl();
         }
 
         return operacoes;
     }
 
-    private static final String INFORMACOES =
-        "serviço de atendimento a pedágios v1.0";
+    private static final String INFORMACOES = "serviço de atendimento a pedagios, v1.0";
 
-    // Endpoint de informações
     @GET
     @Path("/")
     public Response getInformacoes() {
-
-        return Response.ok(
-            INFORMACOES,
-            MediaType.TEXT_PLAIN
-        ).build();
+        return Response.ok(INFORMACOES, MediaType.TEXT_PLAIN).build();
     }
 
-    // Recebe leituras dos pedágios
     @POST
-    @Path("{id}/{l1}/{l2}/{l3}")
-    public Response gravarLeitura(
+    @Path("{id}/{total}")
+    public Response gravarLeitura(@PathParam("id") String idPedagio, @PathParam("total") int total) {
+        Pedagio pedagio = new Pedagio(idPedagio, "único");
+        Contagem contagem = new Contagem(total);
 
-        @PathParam("id") int idPedagio,
-
-        @PathParam("l1") int leitura1,
-
-        @PathParam("l2") int leitura2,
-
-        @PathParam("l3") int leitura3
-    ) {
-
-        int[] leituras = {
-            leitura1,
-            leitura2,
-            leitura3
-        };
-
-        Contagem contagem =
-            new Contagem(idPedagio, 3);
-
-        contagem.setLeituras(leituras);
-
-        Pedagio pedagio =
-            new Pedagio(idPedagio, 3);
-
-        pedagio.getContagem()
-            .setLeituras(leituras);
-
-        // Grava no servidor
-        ((OperacoesImpl) getOperacoes())
-            .adicionarPedagio(pedagio);
-
-        System.out.println(
-            "Leituras recebidas do Pedágio "
-            + idPedagio
-        );
+        getOperacoes().gravar(pedagio, contagem);
 
         return Response.ok().build();
     }
 
-    // Endpoint para imprimir leituras
     @GET
-    @Path("leituras")
-    public Response imprimirLeituras() {
+    @Path("/oscilacoes")
+    public Response detectarOscilacoes() {
+        int oscilacoes = getOperacoes().detectarAltasOscilacoes(LIMIAR_OSCILACOES);
 
-        getOperacoes().imprimirLeituras(
-            "Pedágio ID: "
-        );
-
-        return Response.ok(
-            "Leituras impressas no servidor.",
-            MediaType.TEXT_PLAIN
-        ).build();
+        return Response.ok(oscilacoes + "", MediaType.TEXT_PLAIN).build();
     }
 
-    // Endpoint para ordenar
-    @GET
-    @Path("ordenar")
-    public Response ordenarLeituras() {
-
-        getOperacoes().ordenarLeituras();
-
-        return Response.ok(
-            "Leituras ordenadas.",
-            MediaType.TEXT_PLAIN
-        ).build();
-    }
-
-    // Endpoint da funcionalidade O(N³)
-    @GET
-    @Path("combinacoes")
-    public Response buscarCombinacoes() {
-
-        getOperacoes()
-            .buscarTrioCombinacoes(
-                VALOR_ALVO
-            );
-
-        return Response.ok(
-            "Busca de combinações executada.",
-            MediaType.TEXT_PLAIN
-        ).build();
-    }
 }

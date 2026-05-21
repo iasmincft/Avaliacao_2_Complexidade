@@ -1,137 +1,73 @@
 package br.edu.ifba.pedagio.servidor.impl;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.TreeMap;
+
 import br.edu.ifba.pedagio.servidor.operacoes.Operacoes;
 
-public class OperacoesImpl implements Operacoes {
+public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
 
-    private Pedagio[] pedagios;
-    private int totalPedagios;
+    private static final int LIMIAR_ROTACIONAMENTO_CONTAGENS = 40;
 
-    // Complexidade O(1)
-    public OperacoesImpl(int capacidade) {
+    private Map<Pedagio, Queue<Contagem>> bancoDeDados = new TreeMap<>();
 
-        if (capacidade <= 0) {
-            throw new IllegalArgumentException("A capacidade deve ser maior que zero.");
-        }
-
-        this.pedagios = new Pedagio[capacidade];
-        this.totalPedagios = 0;
-    }
-
-    // Complexidade O(1)
-    public void adicionarPedagio(Pedagio pedagio) {
-
-        if (pedagio == null) {
-            throw new IllegalArgumentException("Pedágio não pode ser nulo.");
-        }
-
-        if (totalPedagios < pedagios.length) {
-            pedagios[totalPedagios] = pedagio;
-            totalPedagios++;
+    @Override
+    public void gravar(Pedagio pedagio, Contagem contagem) {
+        Queue<Contagem> contagens = new LinkedList<>();
+        if (bancoDeDados.containsKey(pedagio)) {
+            contagens = bancoDeDados.get(pedagio);
         } else {
-            System.out.println("Limite máximo de pedágios atingido.");
+            bancoDeDados.put(pedagio, contagens);
         }
+
+        try {
+            Thread.sleep(5);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (contagens.size() > LIMIAR_ROTACIONAMENTO_CONTAGENS) {
+            contagens.poll();
+
+            System.out.println("limite de rotacionamento atingido, última contagem descartada");
+        }
+        contagens.add(contagem);
+
+        System.out.println("gravada nova contagem para o pedagio: " + pedagio);
     }
 
-    // Complexidade O(N)
     @Override
-    public void imprimirContagens() {
+    public int detectarAltasOscilacoes(int limiarOscilacao) {
+        int contador = 0;
 
-        for (int i = 0; i < totalPedagios; i++) {
+        // M 
+        for (Pedagio pedagio : bancoDeDados.keySet()) {
+            List<Contagem> contagensPorPedagio = new ArrayList<>(bancoDeDados.get(pedagio));
+            int n = contagensPorPedagio.size();
 
-            System.out.println(
-                "Pedágio ID: "
-                + pedagios[i].getContagem().getId()
-            );
-        }
-    }
-
-    // Complexidade O(N²)
-    @Override
-    public void imprimirLeituras(String mensagemPersonalizada) {
-
-        for (int i = 0; i < totalPedagios; i++) {
-
-            System.out.print(
-                mensagemPersonalizada
-                + pedagios[i].getContagem().getId()
-                + " Leituras: "
-            );
-
-            int[] leituras =
-                pedagios[i].getContagem().getLeituras();
-
-            for (int leitura : leituras) {
-                System.out.print(leitura + " ");
+            try {
+                Thread.sleep(15);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
-            System.out.println();
-        }
-    }
+            // N^2
+            for (int i = 0; i < n; i++) {
+                for (int j = i + 1; j < n; j++) {
+                    int oscilacao = Math.abs(contagensPorPedagio.get(i).getTotal() - contagensPorPedagio.get(j).getTotal());
 
-    // Complexidade O(N²)
-    @Override
-    public void ordenarLeituras() {
-
-        for (int i = 0; i < totalPedagios; i++) {
-
-            int[] leituras =
-                pedagios[i].getContagem().getLeituras();
-
-            // Bubble Sort
-            for (int j = 0; j < leituras.length - 1; j++) {
-
-                for (int k = 0; k < leituras.length - j - 1; k++) {
-
-                    if (leituras[k] > leituras[k + 1]) {
-
-                        int temp = leituras[k];
-                        leituras[k] = leituras[k + 1];
-                        leituras[k + 1] = temp;
+                    if (oscilacao > limiarOscilacao) {
+                        contador++;
                     }
                 }
             }
         }
+
+        return contador;
     }
 
-    // Complexidade O(N³)
-    @Override
-    public void buscarTrioCombinacoes(int alvo) {
-
-        for (int i = 0; i < totalPedagios; i++) {
-
-            int[] leituras =
-                pedagios[i].getContagem().getLeituras();
-
-            for (int j = 0; j < leituras.length; j++) {
-
-                for (int k = j + 1; k < leituras.length; k++) {
-
-                    for (int l = k + 1; l < leituras.length; l++) {
-
-                        if (
-                            leituras[j]
-                            + leituras[k]
-                            + leituras[l]
-                            == alvo
-                        ) {
-
-                            System.out.println(
-                                "Combinação encontrada no Pedágio ID "
-                                + pedagios[i].getContagem().getId()
-                                + ": "
-                                + leituras[j]
-                                + " + "
-                                + leituras[k]
-                                + " + "
-                                + leituras[l]
-                                + " = "
-                                + alvo
-                            );
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
