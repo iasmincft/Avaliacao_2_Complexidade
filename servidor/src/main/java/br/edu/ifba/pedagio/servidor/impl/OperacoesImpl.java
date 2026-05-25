@@ -11,8 +11,6 @@ import br.edu.ifba.pedagio.servidor.operacoes.Operacoes;
 
 public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
 
-    private static final int LIMIAR_ROTACIONAMENTO_CONTAGENS = 40;
-
     private Map<Pedagio, Queue<Contagem>> bancoDeDados = new TreeMap<>();
 
     @Override
@@ -30,11 +28,6 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
             e.printStackTrace();
         }
 
-        if (contagens.size() > LIMIAR_ROTACIONAMENTO_CONTAGENS) {
-            contagens.poll();
-
-            System.out.println("limite de rotacionamento atingido, última contagem descartada");
-        }
         contagens.add(contagem);
 
         System.out.println("gravada nova contagem para o pedagio: " + pedagio);
