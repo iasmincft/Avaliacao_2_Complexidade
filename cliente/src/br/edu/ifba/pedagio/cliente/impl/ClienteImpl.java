@@ -18,10 +18,6 @@ public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
     private Pedagio pedagio = null;
     private Sensoriamento<Contagem> sensoriamento = null;
 
-    private static final int LIMIAR_ENVIO = 10;
-
-    private Contagem ultimaContagem = new Contagem(0);
-
     @Override
     public void configurar(Pedagio pedagio, Sensoriamento<Contagem> sensoriamento) {
         this.pedagio = pedagio;
@@ -52,22 +48,14 @@ public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
         List<Contagem> contagens = sensoriamento.gerar(TOTAL_DE_LEITURAS);
 
         for (Contagem contagem : contagens) {
-            int diferenca = Math.abs(contagem.getTotal() - ultimaContagem.getTotal());
+            System.out.println("contagem sendo enviada...");
 
-            if (diferenca > LIMIAR_ENVIO) {
-                ultimaContagem = contagem;
+            try {
+                enviar(contagem);
 
-                System.out.println("contagem sendo enviada...");
-
-                try {
-                    enviar(contagem);
-
-                    Thread.sleep(50);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else {
-                System.out.println("não ocorreram diferenças significativas desde a última contagem");
+                Thread.sleep(50);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
