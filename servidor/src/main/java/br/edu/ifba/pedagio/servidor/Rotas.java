@@ -14,8 +14,6 @@ import jakarta.ws.rs.core.Response;
 @Path("pedagios")
 public class Rotas {
 
-    private static final int LIMIAR_OSCILACOES = 25;
-
     private static Operacoes<Pedagio, Contagem> operacoes = null;
 
     private static Operacoes<Pedagio, Contagem> getOperacoes() {
@@ -46,11 +44,11 @@ public class Rotas {
     }
 
     @GET
-    @Path("/oscilacoes")
-    public Response detectarOscilacoes() {
-        int oscilacoes = getOperacoes().detectarAltasOscilacoes(LIMIAR_OSCILACOES);
+    @Path("/buscar-trios/{alvo}")
+    public Response buscarTrioCombinacoes(@PathParam("alvo") int alvo) {
+        int triosEncontrados = getOperacoes().buscarTrioCombinacoes(alvo);
 
-        return Response.ok(oscilacoes + "", MediaType.TEXT_PLAIN).build();
+        return Response.ok(triosEncontrados + "", MediaType.TEXT_PLAIN).build();
     }
 
 }

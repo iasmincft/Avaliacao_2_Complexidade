@@ -33,11 +33,12 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
         System.out.println("gravada nova contagem para o pedagio: " + pedagio);
     }
 
+    // O(M * N^3), onde M é a quantidade de pedágios e N é a quantidade de contagens
+    // por pedágio.
     @Override
-    public int detectarAltasOscilacoes(int limiarOscilacao) {
+    public int buscarTrioCombinacoes(int alvoSoma) {
         int contador = 0;
 
-        // M 
         for (Pedagio pedagio : bancoDeDados.keySet()) {
             List<Contagem> contagensPorPedagio = new ArrayList<>(bancoDeDados.get(pedagio));
             int n = contagensPorPedagio.size();
@@ -48,13 +49,16 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
                 e.printStackTrace();
             }
 
-            // N^2
             for (int i = 0; i < n; i++) {
                 for (int j = i + 1; j < n; j++) {
-                    int oscilacao = Math.abs(contagensPorPedagio.get(i).getTotal() - contagensPorPedagio.get(j).getTotal());
+                    for (int k = j + 1; k < n; k++) {
+                        int soma = contagensPorPedagio.get(i).getTotal()
+                                + contagensPorPedagio.get(j).getTotal()
+                                + contagensPorPedagio.get(k).getTotal();
 
-                    if (oscilacao > limiarOscilacao) {
-                        contador++;
+                        if (soma == alvoSoma) {
+                            contador++;
+                        }
                     }
                 }
             }
