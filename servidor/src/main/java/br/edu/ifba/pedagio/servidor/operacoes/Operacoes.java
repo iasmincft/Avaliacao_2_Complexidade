@@ -4,6 +4,8 @@ public interface Operacoes<Monitorado, Leitura> {
 
     public void gravar(Monitorado monitorado, Leitura leitura);
 
-    public int detectarAltasOscilacoes(int limiarOscilacao);
+    public void gravar(Monitorado monitorado, int totalTrios);
+
+    public String obterResultadosTrios();
 
 }

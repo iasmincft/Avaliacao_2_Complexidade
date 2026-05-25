@@ -14,8 +14,6 @@ import jakarta.ws.rs.core.Response;
 @Path("pedagios")
 public class Rotas {
 
-    private static final int LIMIAR_OSCILACOES = 25;
-
     private static Operacoes<Pedagio, Contagem> operacoes = null;
 
     private static Operacoes<Pedagio, Contagem> getOperacoes() {
@@ -28,14 +26,16 @@ public class Rotas {
 
     private static final String INFORMACOES = "serviço de atendimento a pedagios, v1.0";
 
+    // O(1)
     @GET
     @Path("/")
     public Response getInformacoes() {
         return Response.ok(INFORMACOES, MediaType.TEXT_PLAIN).build();
     }
 
+    // O(log N) para operações TreeMap e operações de fila.
     @POST
-    @Path("{id}/{total}")
+    @Path("{id}/contagem/{total}")
     public Response gravarLeitura(@PathParam("id") String idPedagio, @PathParam("total") int total) {
         Pedagio pedagio = new Pedagio(idPedagio, "único");
         Contagem contagem = new Contagem(total);
@@ -45,12 +45,22 @@ public class Rotas {
         return Response.ok().build();
     }
 
-    @GET
-    @Path("/oscilacoes")
-    public Response detectarOscilacoes() {
-        int oscilacoes = getOperacoes().detectarAltasOscilacoes(LIMIAR_OSCILACOES);
+    // O(log N) para operações TreeMap.
+    @POST
+    @Path("{id}/trios/{trios}")
+    public Response gravarResultadoTrios(@PathParam("id") String idPedagio, @PathParam("trios") int trios) {
+        Pedagio pedagio = new Pedagio(idPedagio, "único");
+        getOperacoes().gravar(pedagio, trios);
 
-        return Response.ok(oscilacoes + "", MediaType.TEXT_PLAIN).build();
+        return Response.ok().build();
+    }
+
+    // O(M) para iterar sobre os pedágios com resultados.
+    @GET
+    @Path("/resultado-trios")
+    public Response obterResultadosTrios() {
+        String resultados = ((OperacoesImpl) getOperacoes()).obterResultadosTrios();
+        return Response.ok(resultados, MediaType.TEXT_PLAIN).build();
     }
 
 }

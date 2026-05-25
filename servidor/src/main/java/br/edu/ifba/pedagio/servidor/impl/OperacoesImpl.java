@@ -1,8 +1,6 @@
 package br.edu.ifba.pedagio.servidor.impl;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
@@ -14,7 +12,9 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
     private static final int LIMIAR_ROTACIONAMENTO_CONTAGENS = 40;
 
     private Map<Pedagio, Queue<Contagem>> bancoDeDados = new TreeMap<>();
+    private Map<Pedagio, Integer> resultadosTrios = new TreeMap<>();
 
+    // O(log N) para operações TreeMap (containsKey, get, put); O(1) para enfileiramento.
     @Override
     public void gravar(Pedagio pedagio, Contagem contagem) {
         Queue<Contagem> contagens = new LinkedList<>();
@@ -40,34 +40,24 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
         System.out.println("gravada nova contagem para o pedagio: " + pedagio);
     }
 
+    // O(1) para armazenar e acumular resultado de trios calculado pelo cliente.
     @Override
-    public int detectarAltasOscilacoes(int limiarOscilacao) {
-        int contador = 0;
-
-        // M 
-        for (Pedagio pedagio : bancoDeDados.keySet()) {
-            List<Contagem> contagensPorPedagio = new ArrayList<>(bancoDeDados.get(pedagio));
-            int n = contagensPorPedagio.size();
-
-            try {
-                Thread.sleep(15);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            // N^2
-            for (int i = 0; i < n; i++) {
-                for (int j = i + 1; j < n; j++) {
-                    int oscilacao = Math.abs(contagensPorPedagio.get(i).getTotal() - contagensPorPedagio.get(j).getTotal());
-
-                    if (oscilacao > limiarOscilacao) {
-                        contador++;
-                    }
-                }
-            }
+    public void gravar(Pedagio pedagio, int totalTrios) {
+        System.out.println(totalTrios > 0 ? "trios informados pelo cliente para " + pedagio + ": " + totalTrios 
+                                          : "nenhum trio informado pelo cliente para " + pedagio);
+        if (resultadosTrios.containsKey(pedagio)) {
+            totalTrios += resultadosTrios.get(pedagio);  // Acumula ao invés de sobrescrever
         }
+        resultadosTrios.put(pedagio, totalTrios);
+    }
 
-        return contador;
+    // O(M), onde M é a quantidade de pedágios com resultados.
+    public String obterResultadosTrios() {
+        StringBuilder resultado = new StringBuilder();
+        for (Pedagio pedagio : resultadosTrios.keySet()) {
+            resultado.append(pedagio).append(" = ").append(resultadosTrios.get(pedagio)).append("; ");
+        }
+        return resultado.toString();
     }
 
 }
