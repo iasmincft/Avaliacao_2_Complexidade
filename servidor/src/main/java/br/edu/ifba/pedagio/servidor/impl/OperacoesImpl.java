@@ -44,7 +44,7 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
     @Override
     public void gravar(Pedagio pedagio, int totalTrios) {
         System.out.println(totalTrios > 0 ? "trios informados pelo cliente para " + pedagio + ": " + totalTrios 
-                                          : "nenhum trio informado pelo cliente para " + pedagio);
+                            : "nenhum trio informado pelo cliente para " + pedagio);
         if (resultadosTrios.containsKey(pedagio)) {
             totalTrios += resultadosTrios.get(pedagio);  // Acumula ao invés de sobrescrever
         }
