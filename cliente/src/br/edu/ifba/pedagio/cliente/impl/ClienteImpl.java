@@ -1,12 +1,18 @@
 package br.edu.ifba.pedagio.cliente.impl;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+
+import javax.crypto.Cipher;
 
 import br.edu.ifba.pedagio.cliente.comunicacao.Cliente;
 import br.edu.ifba.pedagio.cliente.comunicacao.Resultado;
@@ -14,10 +20,15 @@ import br.edu.ifba.pedagio.cliente.sensoriamento.Sensoriamento;
 
 public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
 
-    private static final int TOTAL_DE_LEITURAS = 1000;
+    private static final int TOTAL_DE_LEITURAS = 10;
 
     private static final String URL_SERVIDOR = "http://localhost:8081";
     private static final String URL_PEDAGIOS = URL_SERVIDOR + "/pedagios/";
+
+    private static final String ALGORITMO_ENCRIPTACAO = "RSA";
+    private static final String CAMINHO_CHAVE_PUBLICA = "chaves/ch_publica.chv";
+
+    private static final int ALVO_SOMA_TRIOS = 450;
 
     private Pedagio pedagio = null;
     private Sensoriamento<Contagem> sensoriamento = null;
@@ -27,19 +38,48 @@ public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
     private Contagem ultimaContagem = new Contagem(0);
     private List<Contagem> contagensLocais = new ArrayList<>();
 
-    // O(1)
+    private PublicKey chave = null;
+
+    // O(1) para atribuicoes; o carregamento da chave publica do disco e O(1).
     @Override
-    public void configurar(Pedagio pedagio, Sensoriamento<Contagem> sensoriamento) {
+    public void configurar(Pedagio pedagio, Sensoriamento<Contagem> sensoriamento) throws Exception {
         this.pedagio = pedagio;
         this.sensoriamento = sensoriamento;
+        this.chave = getChave();
     }
 
+    // O(1): le a chave publica do arquivo e a reconstroi via X509EncodedKeySpec.
+    private PublicKey getChave() throws Exception {
+        File arquivo = new File(CAMINHO_CHAVE_PUBLICA);
+        FileInputStream stream = new FileInputStream(arquivo);
+
+        byte[] bytes = stream.readAllBytes();
+        stream.close();
+
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(bytes);
+        KeyFactory kf = KeyFactory.getInstance(ALGORITMO_ENCRIPTACAO);
+
+        return kf.generatePublic(spec);
+    }
+
+    // O(1): a encriptacao RSA opera sobre um bloco de tamanho fixo da chave.
+    private byte[] encriptar(String dados) throws Exception {
+        Cipher cifrador = Cipher.getInstance(ALGORITMO_ENCRIPTACAO);
+        cifrador.init(Cipher.ENCRYPT_MODE, chave);
+
+        return cifrador.doFinal(dados.getBytes());
+    }
+
+    // O(1): requisicao HTTP unica com a contagem encriptada no caminho da URL.
     @SuppressWarnings("deprecation")
     @Override
     public Resultado enviar(Contagem contagem) throws Exception {
         Resultado resultado = Resultado.SUCESSO;
 
-        URL urlEnvio = new URL(URL_PEDAGIOS + pedagio.getIdentificacao() + "/contagem/" + contagem.getTotal());
+        String json = "{\"id\":\"" + pedagio.getIdentificacao() + "\",\"total\":" + contagem.getTotal() + "}";
+        String dados = new String(Base64.getUrlEncoder().encode(encriptar(json)));
+
+        URL urlEnvio = new URL(URL_PEDAGIOS + "leituras/" + dados);
 
         HttpURLConnection conexao = (HttpURLConnection) urlEnvio.openConnection();
         conexao.setRequestMethod("POST");
@@ -53,12 +93,16 @@ public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
         return resultado;
     }
 
-    // O(1) para requisição HTTP; O(1) para envio de resultado.
+    // O(1): requisicao HTTP unica com o resultado de trios encriptado no caminho da URL.
+    @SuppressWarnings("deprecation")
     @Override
     public Resultado enviarResultadoTrios(int totalTrios) throws Exception {
         Resultado resultado = Resultado.SUCESSO;
 
-        URL urlEnvio = URI.create(URL_PEDAGIOS + pedagio.getIdentificacao() + "/trios/" + totalTrios).toURL();
+        String json = "{\"id\":\"" + pedagio.getIdentificacao() + "\",\"trios\":" + totalTrios + "}";
+        String dados = new String(Base64.getUrlEncoder().encode(encriptar(json)));
+
+        URL urlEnvio = URI.create(URL_PEDAGIOS + "trios/" + dados).toURL();
 
         HttpURLConnection conexao = (HttpURLConnection) urlEnvio.openConnection();
         conexao.setRequestMethod("POST");
@@ -121,7 +165,7 @@ public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
         }
 
         try {
-            int totalTrios = processarTriosLocalmente(450);
+            int totalTrios = processarTriosLocalmente(ALVO_SOMA_TRIOS);
             System.out.println("trios encontrados no cliente: " + totalTrios);
             enviarResultadoTrios(totalTrios);
         } catch (Exception e) {

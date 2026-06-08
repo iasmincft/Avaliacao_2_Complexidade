@@ -1,5 +1,24 @@
 package br.edu.ifba.pedagio.servidor;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import br.edu.ifba.pedagio.servidor.impl.Contagem;
 import br.edu.ifba.pedagio.servidor.impl.OperacoesImpl;
 import br.edu.ifba.pedagio.servidor.impl.Pedagio;
@@ -25,6 +44,37 @@ public class Rotas {
     }
 
     private static final String INFORMACOES = "serviço de atendimento a pedagios, v1.0";
+    private static final String ALGORITMO_DE_ENCRIPTACAO = "RSA";
+    private static final String CAMINHO_CHAVE_PRIVADA = "chaves/ch_privada.chv";
+
+    private PrivateKey chave = null;
+
+    // O(1) amortizado: a chave e carregada do disco apenas na primeira chamada.
+    private PrivateKey getChavePrivada() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        if (chave == null) {
+            File arquivo = new File(CAMINHO_CHAVE_PRIVADA);
+            FileInputStream stream = new FileInputStream(arquivo);
+            byte[] bytes = stream.readAllBytes();
+            stream.close();
+
+            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(bytes);
+            KeyFactory kf = KeyFactory.getInstance(ALGORITMO_DE_ENCRIPTACAO);
+            chave = kf.generatePrivate(spec);
+        }
+
+        return chave;
+    }
+
+    // O(1): a desencriptacao RSA opera sobre um bloco de tamanho fixo da chave.
+    private String desencriptar(byte[] encriptado) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, InvalidKeySpecException, IOException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance(ALGORITMO_DE_ENCRIPTACAO);
+        cipher.init(Cipher.DECRYPT_MODE, getChavePrivada());
+
+        byte[] desencriptado = cipher.doFinal(encriptado);
+
+        return new String(desencriptado);
+    }
 
     // O(1)
     @GET
@@ -33,26 +83,58 @@ public class Rotas {
         return Response.ok(INFORMACOES, MediaType.TEXT_PLAIN).build();
     }
 
-    // O(log N) para operações TreeMap e operações de fila.
+    // O(log N) para operacoes TreeMap e operacoes de fila, alem de O(1) para desencriptacao RSA.
     @POST
-    @Path("{id}/contagem/{total}")
-    public Response gravarLeitura(@PathParam("id") String idPedagio, @PathParam("total") int total) {
-        Pedagio pedagio = new Pedagio(idPedagio, "único");
-        Contagem contagem = new Contagem(total);
+    @Path("/leituras/{dados}")
+    public Response gravarLeitura(@PathParam("dados") String dados) {
+        Response resposta = Response.serverError().build();
 
-        getOperacoes().gravar(pedagio, contagem);
+        System.out.println("dados encriptados: " + dados);
 
-        return Response.ok().build();
+        try {
+            String json = desencriptar(Base64.getUrlDecoder().decode(dados));
+
+            ObjectMapper mapeador = new ObjectMapper();
+            JsonNode dic = mapeador.readTree(json);
+
+            Pedagio pedagio = new Pedagio(dic.get("id").asText(), "único");
+            Contagem contagem = new Contagem(dic.get("total").asInt());
+
+            getOperacoes().gravar(pedagio, contagem);
+
+            resposta = Response.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resposta;
     }
 
-    // O(log N) para operações TreeMap.
+    // O(log N) para operacoes TreeMap, alem de O(1) para desencriptacao RSA.
     @POST
-    @Path("{id}/trios/{trios}")
-    public Response gravarResultadoTrios(@PathParam("id") String idPedagio, @PathParam("trios") int trios) {
-        Pedagio pedagio = new Pedagio(idPedagio, "único");
-        getOperacoes().gravar(pedagio, trios);
+    @Path("/trios/{dados}")
+    public Response gravarResultadoTrios(@PathParam("dados") String dados) {
+        Response resposta = Response.serverError().build();
 
-        return Response.ok().build();
+        System.out.println("dados encriptados: " + dados);
+
+        try {
+            String json = desencriptar(Base64.getUrlDecoder().decode(dados));
+
+            ObjectMapper mapeador = new ObjectMapper();
+            JsonNode dic = mapeador.readTree(json);
+
+            Pedagio pedagio = new Pedagio(dic.get("id").asText(), "único");
+            int trios = dic.get("trios").asInt();
+
+            getOperacoes().gravar(pedagio, trios);
+
+            resposta = Response.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resposta;
     }
 
     // O(M) para iterar sobre os pedágios com resultados.
