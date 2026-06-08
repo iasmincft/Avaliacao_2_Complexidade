@@ -18,12 +18,14 @@ public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
     private Pedagio pedagio = null;
     private Sensoriamento<Contagem> sensoriamento = null;
 
+    // O(1)
     @Override
     public void configurar(Pedagio pedagio, Sensoriamento<Contagem> sensoriamento) {
         this.pedagio = pedagio;
         this.sensoriamento = sensoriamento;
     }
 
+    // O(1)
     @SuppressWarnings("deprecation")
     @Override
     public Resultado enviar(Contagem contagem) throws Exception {
@@ -43,6 +45,7 @@ public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
         return resultado;
     }
 
+    // O(n)
     @Override
     public void run() {
         List<Contagem> contagens = sensoriamento.gerar(TOTAL_DE_LEITURAS);

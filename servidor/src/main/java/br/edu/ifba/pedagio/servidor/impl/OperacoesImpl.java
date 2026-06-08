@@ -13,6 +13,7 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
 
     private Map<Pedagio, Queue<Contagem>> bancoDeDados = new TreeMap<>();
 
+    // O(log M)
     @Override
     public void gravar(Pedagio pedagio, Contagem contagem) {
         Queue<Contagem> contagens = new LinkedList<>();
