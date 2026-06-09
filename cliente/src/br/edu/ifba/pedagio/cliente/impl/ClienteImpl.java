@@ -20,13 +20,13 @@ import br.edu.ifba.pedagio.cliente.sensoriamento.Sensoriamento;
 
 public class ClienteImpl implements Cliente<Pedagio, Contagem>, Runnable {
 
-    private static final int TOTAL_DE_LEITURAS = 10;
+    private static final int TOTAL_DE_LEITURAS = 1000;
 
     private static final String URL_SERVIDOR = "http://localhost:8081";
     private static final String URL_PEDAGIOS = URL_SERVIDOR + "/pedagios/";
 
     private static final String ALGORITMO_ENCRIPTACAO = "RSA";
-    private static final String CAMINHO_CHAVE_PUBLICA = "chaves/ch_publica.chv";
+    private static final String CAMINHO_CHAVE_PUBLICA = "chaves/ch_publica.bin";
 
     private static final int ALVO_SOMA_TRIOS = 450;
 

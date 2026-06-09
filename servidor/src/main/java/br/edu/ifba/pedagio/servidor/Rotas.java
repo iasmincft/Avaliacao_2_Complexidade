@@ -45,7 +45,7 @@ public class Rotas {
 
     private static final String INFORMACOES = "serviço de atendimento a pedagios, v1.0";
     private static final String ALGORITMO_DE_ENCRIPTACAO = "RSA";
-    private static final String CAMINHO_CHAVE_PRIVADA = "chaves/ch_privada.chv";
+    private static final String CAMINHO_CHAVE_PRIVADA = "chaves/ch_privada.bin";
 
     private PrivateKey chave = null;
 

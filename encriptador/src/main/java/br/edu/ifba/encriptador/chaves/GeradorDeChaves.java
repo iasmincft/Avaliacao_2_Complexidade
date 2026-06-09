@@ -7,14 +7,13 @@ import br.edu.ifba.encriptador.excecoes.FalhaGeracaoDeChaves;
 
 public interface GeradorDeChaves<T extends SecureRandom> {
 
-    void inicializar(T gerador, String algoritmo);
+  void inicializar(T gerador, String algoritmo);
 
-    KeyPair gerarChaves() throws FalhaGeracaoDeChaves;
+  KeyPair gerarChaves() throws FalhaGeracaoDeChaves;
 
-    KeyPair gerarChaves(
-            String caminhoPrivada,
-            String caminhoPublica
-    ) throws FalhaGeracaoDeChaves;
+  KeyPair gerarChaves(
+      String caminhoPrivada,
+      String caminhoPublica) throws FalhaGeracaoDeChaves;
 
-    void finalizar() throws FalhaGeracaoDeChaves;
+  void finalizar() throws FalhaGeracaoDeChaves;
 }

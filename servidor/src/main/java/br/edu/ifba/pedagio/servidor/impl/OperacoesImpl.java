@@ -14,7 +14,7 @@ public class OperacoesImpl implements Operacoes<Pedagio, Contagem> {
     private Map<Pedagio, Queue<Contagem>> bancoDeDados = new TreeMap<>();
     private Map<Pedagio, Integer> resultadosTrios = new TreeMap<>();
 
-    // O(log N) para operações TreeMap (containsKey, get, put); O(1) para enfileiramento.
+    // O(log N) para operações TreeMap; O(1) para enfileiramento.
     @Override
     public void gravar(Pedagio pedagio, Contagem contagem) {
         Queue<Contagem> contagens = new LinkedList<>();

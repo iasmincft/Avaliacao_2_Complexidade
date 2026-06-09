@@ -11,79 +11,66 @@ import br.edu.ifba.encriptador.excecoes.FalhaEncriptacao;
 
 public class EncriptadorImpl extends Encriptador {
 
-        public EncriptadorImpl(
-                KeyPair chaves,
-                String algoritmo
-        ) {
-                super(chaves, algoritmo);
-        }
+  public EncriptadorImpl(
+      KeyPair chaves,
+      String algoritmo) {
+    super(chaves, algoritmo);
+  }
 
-        @Override
-        public String encriptar(String dados)
-                throws FalhaEncriptacao {
+  @Override
+  public String encriptar(String dados)
+      throws FalhaEncriptacao {
 
-                try {
+    try {
 
-                Cipher cipher =
-                        Cipher.getInstance(algoritmo);
+      Cipher cipher = Cipher.getInstance(algoritmo);
 
-                cipher.init(
-                        Cipher.ENCRYPT_MODE,
-                        chaves.getPublic()
-                );
+      cipher.init(
+          Cipher.ENCRYPT_MODE,
+          chaves.getPublic());
 
-                byte[] bytes =
-                        cipher.doFinal(
-                                dados.getBytes(
-                                        StandardCharsets.UTF_8
-                                )
-                        );
+      byte[] bytes = cipher.doFinal(
+          dados.getBytes(
+              StandardCharsets.UTF_8));
 
-                return Base64
-                        .getEncoder()
-                        .encodeToString(bytes);
+      return Base64
+          .getEncoder()
+          .encodeToString(bytes);
 
-                } catch (Exception e) {
+    } catch (Exception e) {
 
-                throw new FalhaEncriptacao(
-                        "erro ao encriptar: "
-                                + e.getMessage()
-                );
-                }
-        }
+      throw new FalhaEncriptacao(
+          "erro ao encriptar: "
+              + e.getMessage());
+    }
+  }
 
-        @Override
-        public String desencriptar(String dados)
-                throws FalhaEncriptacao {
+  @Override
+  public String desencriptar(String dados)
+      throws FalhaEncriptacao {
 
-                try {
+    try {
 
-                Cipher cipher =
-                        Cipher.getInstance(algoritmo);
+      Cipher cipher = Cipher.getInstance(algoritmo);
 
-                cipher.init(
-                        Cipher.DECRYPT_MODE,
-                        chaves.getPrivate()
-                );
+      cipher.init(
+          Cipher.DECRYPT_MODE,
+          chaves.getPrivate());
 
-                byte[] bytes =
-                        Base64.getDecoder()
-                                .decode(dados);
+      byte[] bytes = Base64.getDecoder()
+          .decode(dados);
 
-                byte[] resultado =
-                        cipher.doFinal(bytes);
+      byte[] resultado = cipher.doFinal(bytes);
 
-                return new String(
-                        resultado,
-                        StandardCharsets.UTF_8
-                );
+      return new String(
+          resultado,
+          StandardCharsets.UTF_8);
 
-                } catch (Exception e) {
+    } catch (Exception e) {
 
-                throw new FalhaEncriptacao(
-                        "erro ao desencriptar: "
-                                + e.getMessage()
-                );
-                }
-        }
+      throw new FalhaEncriptacao(
+          "erro ao desencriptar: "
+              + e.getMessage());
+    }
+  }
 }

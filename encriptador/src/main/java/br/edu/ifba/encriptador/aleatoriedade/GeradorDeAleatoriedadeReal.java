@@ -14,96 +14,81 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import br.edu.ifba.encriptador.excecoes.FalhaGeracaoDeChaves;
 
 public class GeradorDeAleatoriedadeReal
-        extends SecureRandom {
+    extends SecureRandom {
 
-        private FFmpegFrameGrabber grabber;
+  private FFmpegFrameGrabber grabber;
 
-        public GeradorDeAleatoriedadeReal(
-                String caminhoVideo
-        ) throws FalhaGeracaoDeChaves {
+  public GeradorDeAleatoriedadeReal(String caminhoVideo) throws FalhaGeracaoDeChaves {
 
-                try {
+    try {
 
-                Loader.load(
-                        org.bytedeco.opencv.global.opencv_core.class
-                );
+      Loader.load(
+          org.bytedeco.opencv.global.opencv_core.class);
 
-                grabber =
-                        new FFmpegFrameGrabber(
-                                caminhoVideo
-                        );
+      grabber = new FFmpegFrameGrabber(
+          caminhoVideo);
 
-                grabber.start();
+      grabber.start();
 
-                } catch (Exception e) {
+    } catch (Exception e) {
 
-                throw new FalhaGeracaoDeChaves(
-                        e.getMessage()
-                );
-                }
-        }
+      throw new FalhaGeracaoDeChaves(
+          e.getMessage());
+    }
+  }
 
-        @Override
-        public int nextInt() {
+  @Override
+  public int nextInt() {
 
-                try {
+    try {
 
-                Frame frame =
-                        grabber.grabImage();
+      Frame frame = grabber.grabImage();
 
-                if (frame == null) {
-                        return super.nextInt();
-                }
+      if (frame == null) {
+        return super.nextInt();
+      }
 
-                Java2DFrameConverter converter =
-                        new Java2DFrameConverter();
+      Java2DFrameConverter converter = new Java2DFrameConverter();
 
-                BufferedImage image =
-                        converter.convert(frame);
+      BufferedImage image = converter.convert(frame);
 
-                ByteArrayOutputStream stream =
-                        new ByteArrayOutputStream();
+      ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-                ImageIO.write(
-                        image,
-                        "jpg",
-                        stream
-                );
+      ImageIO.write(
+          image,
+          "jpg",
+          stream);
 
-                byte[] bytes =
-                        stream.toByteArray();
+      byte[] bytes = stream.toByteArray();
 
-                int valor = 0;
+      int valor = 0;
 
-                for (int i = 0;
-                        i < 4 && i < bytes.length;
-                        i++) {
+      for (int i = 0; i < 4 && i < bytes.length; i++) {
 
-                        valor <<= 8;
-                        valor |= bytes[i] & 0xff;
-                }
+        valor <<= 8;
+        valor |= bytes[i] & 0xff;
+      }
 
-                return valor;
+      return valor;
 
-                } catch (Exception e) {
+    } catch (Exception e) {
 
-                return super.nextInt();
-                }
-        }
+      return super.nextInt();
+    }
+  }
 
-        public void finalizar()
-                throws FalhaGeracaoDeChaves {
+  public void finalizar()
+      throws FalhaGeracaoDeChaves {
 
-                try {
+    try {
 
-                grabber.stop();
-                grabber.release();
+      grabber.stop();
+      grabber.release();
 
-                } catch (Exception e) {
+    } catch (Exception e) {
 
-                throw new FalhaGeracaoDeChaves(
-                        e.getMessage()
-                );
-                }
-        }
+      throw new FalhaGeracaoDeChaves(
+          e.getMessage());
+    }
+  }
 }
